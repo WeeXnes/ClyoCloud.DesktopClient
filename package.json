@@ -1,0 +1,61 @@
+{
+  "name": "clyocloud-desktop",
+  "version": "1.0.0",
+  "description": "ClyoCloud Desktop Companion for Windows and Linux",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "watch": "node scripts/build.js --watch",
+    "start": "npm run build && electron .",
+    "pack:linux": "npm run build && electron-builder --dir --linux",
+    "pack:win": "npm run build && electron-builder --dir --win",
+    "package:linux": "npm run build && electron-builder --linux",
+    "package:win": "npm run build && electron-builder --win",
+    "package:all": "npm run build && electron-builder --linux --win",
+    "installer:setup": "chmod +x installer/*.sh && ./installer/setup.sh",
+    "installer:linux": "npm run pack:linux && ./installer/build.sh linux-x64",
+    "installer:win": "npm run pack:win && ./installer/build.sh win-x64",
+    "installer:all": "npm run pack:linux && npm run pack:win && ./installer/build.sh all"
+  },
+  "dependencies": {
+    "chokidar": "^4.0.3",
+    "mime-types": "^2.1.35"
+  },
+  "devDependencies": {
+    "@types/mime-types": "^2.1.4",
+    "@types/node": "^22.13.10",
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.8.2"
+  },
+  "build": {
+    "appId": "dev.weexnes.clyocloud.desktop",
+    "productName": "ClyoCloud",
+    "executableName": "clyocloud",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "tar.gz"
+      ],
+      "category": "Network",
+      "icon": "assets/icon.png"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "clyocloud-desktop",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "ClyoCloud Desktop Companion for Windows and Linux",
   "main": "dist/main/index.js",
   "scripts": {
@@ -54,8 +54,7 @@
         "dir"
       ],
       "icon": "assets/icon.ico",
-      "signAndEditExecutable": false,
-      "asarIntegrity": false
+      "signAndEditExecutable": false
     }
   }
 }

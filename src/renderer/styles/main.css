@@ -335,13 +335,18 @@ select option {
 .content-area {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
+  width: 100%;
 }
 
 .tab-pane {
   display: none;
   height: 100%;
   padding: 12px 14px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .tab-pane.active {

@@ -261,9 +261,13 @@ export class ClyoAPIClient {
     }
   }
 
+  private encodePathSegments(rawPath: string): string {
+    const cleaned = rawPath.replace(/^\/+/, '');
+    return cleaned.split('/').map(seg => encodeURIComponent(seg)).join('/');
+  }
+
   public async downloadFile(remoteFilePath: string, localDestination: string): Promise<void> {
-    const cleaned = remoteFilePath.replace(/^\/+/, '');
-    const encoded = encodeURI(cleaned);
+    const encoded = this.encodePathSegments(remoteFilePath);
     const url = `${this.getBaseUrl()}/file/${encoded}`;
 
     const res = await this.safeFetch(url, {
@@ -290,7 +294,7 @@ export class ClyoAPIClient {
       return this.thumbnailCache.get(cleaned)!;
     }
 
-    const encoded = encodeURI(cleaned);
+    const encoded = this.encodePathSegments(remotePath);
     // 1. Try /thumbnail first
     try {
       const thumbUrl = `${this.getBaseUrl()}/thumbnail/${encoded}`;
@@ -325,7 +329,7 @@ export class ClyoAPIClient {
   }
 
   public getShareableFileUrl(remotePath: string): string {
-    const cleaned = remotePath.replace(/^\/+/, '');
-    return `${this.getBaseUrl()}/file/${encodeURI(cleaned)}`;
+    const encoded = this.encodePathSegments(remotePath);
+    return `${this.getBaseUrl()}/file/${encoded}`;
   }
 }

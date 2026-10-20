@@ -663,8 +663,11 @@ class AppRenderer {
               setBtn.textContent = 'Set as Desktop';
             }, 3000);
           } else {
-            setBtn.removeAttribute('disabled');
             setBtn.textContent = 'Failed to Set';
+            setTimeout(() => {
+              setBtn.removeAttribute('disabled');
+              setBtn.textContent = 'Set as Desktop';
+            }, 3000);
           }
         });
 

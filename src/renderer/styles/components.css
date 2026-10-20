@@ -247,6 +247,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
+  width: 100%;
 }
 
 .wallpapers-header-bar span {
@@ -257,9 +258,11 @@
 
 .wallpapers-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding-bottom: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-bottom: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .wallpaper-card {
@@ -270,24 +273,36 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wallpaper-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .wallpaper-thumb-wrapper {
   position: relative;
   width: 100%;
   height: 80px;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .wallpaper-thumb-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .wallpaper-card-name {
@@ -296,13 +311,20 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
+  min-width: 0;
+  color: var(--text-main);
 }
 
 .btn-wallpaper-set {
   width: 100%;
-  padding: 4px;
-  font-size: 9px;
+  padding: 5px 6px;
+  font-size: 10px;
   font-weight: 600;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-wallpaper-set.applied {

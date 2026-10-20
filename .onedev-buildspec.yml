@@ -1,7 +1,6 @@
-version: 53
+version: 43
 jobs:
-- name: Build & Package Desktop Installers
-  jobExecutor: Builder
+- name: Get Version (private)
   steps:
   - type: CheckoutStep
     name: checkout code
@@ -12,97 +11,50 @@ jobs:
     condition: SUCCESSFUL
     optional: false
   - type: CommandStep
-    name: Install Node Dependencies
+    name: get version
     runInContainer: false
     interpreter:
-      type: PosixInterpreter
-      shell: sh
-    commands: |
-      echo "Installing Node.js dependencies..."
-      npm install
-    runAs: 0:0
+      type: DefaultInterpreter
+      commands: |
+        echo "Extracting version from package.json..."
+        grep -oP '"version":\s*"\K[^"]+' package.json > version.txt || echo "1.0.0" > version.txt
+        echo "Version extracted: $(cat version.txt)"
     useTTY: true
     condition: SUCCESSFUL
     optional: false
   - type: CommandStep
-    name: Compile App Bundle
+    name: check if tag exists
     runInContainer: false
     interpreter:
-      type: PosixInterpreter
-      shell: sh
-    commands: |
-      echo "Compiling TypeScript and bundling renderer assets..."
-      npm run build
-    runAs: 0:0
+      type: DefaultInterpreter
+      commands: |
+        version=$(cat version.txt)
+        echo "Checking if tag '$version' exists on origin..."
+        if git ls-remote --tags origin | grep -q "refs/tags/${version}$"; then
+            echo "Tag '$version' already exists."
+            new_version="${version}-@commit_hash@"
+            echo "$new_version" > version.txt
+            echo "Updated version.txt to '$new_version' to avoid tag conflict."
+            exit 1
+        else
+            echo "Tag '$version' does not exist. Proceeding with original version."
+            exit 0
+        fi
     useTTY: true
-    condition: SUCCESSFUL
-    optional: false
-  - type: CommandStep
-    name: Package App Binaries (Linux & Windows)
-    runInContainer: false
-    interpreter:
-      type: PosixInterpreter
-      shell: sh
-    commands: |
-      echo "Packaging unpacked Electron applications for Linux and Windows..."
-      npm run pack:linux
-      npm run pack:win
-    runAs: 0:0
-    useTTY: true
-    condition: SUCCESSFUL
-    optional: false
-  - type: CommandStep
-    name: Setup Installer Framework
-    runInContainer: false
-    interpreter:
-      type: PosixInterpreter
-      shell: sh
-    commands: |
-      echo "Initializing InstallerFramework from https://code.weexnes.dev/InstallerFramework.git..."
-      chmod +x installer/*.sh
-      ./installer/setup.sh
-    runAs: 0:0
-    useTTY: true
-    condition: SUCCESSFUL
-    optional: false
-  - type: CommandStep
-    name: Build Standalone Installers
-    runInContainer: false
-    interpreter:
-      type: PosixInterpreter
-      shell: sh
-    commands: |
-      echo "Compiling standalone single-file installer wizards..."
-      ./installer/build.sh all
-    runAs: 0:0
-    useTTY: true
-    condition: SUCCESSFUL
-    optional: false
-  - type: CommandStep
-    name: Extract Version
-    runInContainer: false
-    interpreter:
-      type: PosixInterpreter
-      shell: sh
-    commands: |
-      echo "Extracting version from package.json..."
-      grep -oP '"version":\s*"\K[^"]+' package.json > version.txt
-      version=$(cat version.txt)
-      echo "Version extracted: $version"
-    runAs: 0:0
-    useTTY: true
-    condition: SUCCESSFUL
-    optional: false
-  - type: PublishArtifactStep
-    name: Publish Installers & Artifacts
-    artifacts: installer/publish/**,version.txt
     condition: SUCCESSFUL
     optional: false
   - type: SetBuildVersionStep
-    name: Set Build Version
+    name: set build version
     buildVersion: '@file:version.txt@'
     condition: ALWAYS
     optional: false
+  - type: CreateTagStep
+    name: create tag
+    tagName: '@file:version.txt@'
+    tagMessage: Release Tag for @file:version.txt@
+    condition: SUCCESSFUL
+    optional: false
+  jobExecutor: Builder
   triggers:
   - type: BranchUpdateTrigger
     userMatch: anyone
@@ -110,6 +62,96 @@ jobs:
   retryCondition: never
   maxRetries: 3
   retryDelay: 30
-  includeUpstreamWhenRebuild: false
-  includeDownstreamWhenRebuild: false
+  timeout: 14400
+- name: Build Release Tag
+  steps:
+  - type: CheckoutStep
+    name: checkout code
+    cloneCredential:
+      type: DefaultCredential
+    withLfs: false
+    withSubmodules: false
+    condition: SUCCESSFUL
+    optional: false
+  - type: SetBuildVersionStep
+    name: set build version
+    buildVersion: '@tag@'
+    condition: ALWAYS
+    optional: false
+  - type: CommandStep
+    name: Install Node Dependencies
+    runInContainer: false
+    interpreter:
+      type: DefaultInterpreter
+      commands: |
+        echo "Installing Node.js dependencies..."
+        npm install
+    useTTY: true
+    condition: SUCCESSFUL
+    optional: false
+  - type: CommandStep
+    name: Compile App Bundle
+    runInContainer: false
+    interpreter:
+      type: DefaultInterpreter
+      commands: |
+        echo "Compiling TypeScript and bundling renderer assets..."
+        npm run build
+    useTTY: true
+    condition: SUCCESSFUL
+    optional: false
+  - type: CommandStep
+    name: Package App Binaries (Linux & Windows)
+    runInContainer: false
+    interpreter:
+      type: DefaultInterpreter
+      commands: |
+        echo "Packaging unpacked Electron applications for Linux and Windows..."
+        npm run pack:linux
+        npm run pack:win
+    useTTY: true
+    condition: SUCCESSFUL
+    optional: false
+  - type: CommandStep
+    name: Setup Installer Framework
+    runInContainer: false
+    interpreter:
+      type: DefaultInterpreter
+      commands: |
+        echo "Setting up InstallerFramework..."
+        chmod +x installer/*.sh
+        ./installer/setup.sh
+    useTTY: true
+    condition: SUCCESSFUL
+    optional: false
+  - type: CommandStep
+    name: Build Standalone Installers
+    runInContainer: false
+    interpreter:
+      type: DefaultInterpreter
+      commands: |
+        echo "Compiling standalone single-file installer wizards..."
+        ./installer/build.sh all
+        mkdir -p ./release
+        if [ -f installer/publish/linux-x64/ClyoCloud-Setup-Linux ]; then
+          cp installer/publish/linux-x64/ClyoCloud-Setup-Linux ./release/
+        fi
+        if [ -f installer/publish/win-x64/ClyoCloud-Setup-Windows.exe ]; then
+          cp installer/publish/win-x64/ClyoCloud-Setup-Windows.exe ./release/
+        fi
+    useTTY: true
+    condition: ALWAYS
+    optional: false
+  - type: PublishArtifactStep
+    name: Upload Artifacts
+    sourcePath: release
+    artifacts: '**'
+    condition: ALWAYS
+    optional: false
+  jobExecutor: Builder
+  triggers:
+  - type: TagCreateTrigger
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
   timeout: 14400

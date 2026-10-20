@@ -79,7 +79,7 @@ export class WallpaperManager {
 $path = [System.IO.Path]::GetFullPath('${absPath.replace(/'/g, "''")}');
 if (-not (Test-Path $path)) { exit 1; }
 Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name Wallpaper -Value $path -ErrorAction SilentlyContinue;
-Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name WallpaperStyle -Value '2' -ErrorAction SilentlyContinue;
+Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name WallpaperStyle -Value '10' -ErrorAction SilentlyContinue;
 Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name TileWallpaper -Value '0' -ErrorAction SilentlyContinue;
 
 try {

@@ -24,16 +24,21 @@ else
     git clone "$REPO_URL" "$FRAMEWORK_DIR" || true
 fi
 
-# Detect if current SDK is .NET 8 or .NET 10
-DOTNET_VER=$(dotnet --version 2>/dev/null || echo "8.0")
-if [[ "$DOTNET_VER" =~ ^8\. ]]; then
-    echo "[+] Adapting TargetFramework to net8.0 for current SDK ($DOTNET_VER)..."
-    sed -i 's/<TargetFramework>net10.0<\/TargetFramework>/<TargetFramework>net8.0<\/TargetFramework>/g' \
-        lib/InstallerFramework/src/*/*.csproj 2>/dev/null || true
+# Detect installed .NET SDK version and ensure all projects match
+SDK_MAJOR=$(dotnet --list-sdks 2>/dev/null | awk -F'.' '{print $1}' | sort -n | tail -n 1)
+if [ -z "$SDK_MAJOR" ]; then
+    SDK_MAJOR=$(dotnet --version 2>/dev/null | cut -d'.' -f1 || echo "10")
 fi
+TARGET_TFM="net${SDK_MAJOR}.0"
+echo "[+] Detected .NET SDK major version: $SDK_MAJOR. Aligning all projects to TargetFramework: $TARGET_TFM..."
+
+sed -i -E "s/<TargetFramework>net[0-9]+\.0<\/TargetFramework>/<TargetFramework>${TARGET_TFM}<\/TargetFramework>/g" \
+    "$SCRIPT_DIR/ClyoCloudInstaller.csproj" \
+    "$SCRIPT_DIR"/lib/InstallerFramework/src/*/*.csproj \
+    "$SCRIPT_DIR"/lib/InstallerFramework/templates/*/*.csproj 2>/dev/null || true
 
 echo "[+] Restoring .NET project dependencies..."
-dotnet restore ClyoCloudInstaller.csproj
+dotnet restore "$SCRIPT_DIR/ClyoCloudInstaller.csproj"
 
 echo ""
 echo "=================================================="

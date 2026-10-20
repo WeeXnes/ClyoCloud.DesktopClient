@@ -29,6 +29,7 @@
     "esbuild": "^0.28.2",
     "typescript": "^5.8.2"
   },
+  "author": "WeeXnes",
   "build": {
     "appId": "dev.weexnes.clyocloud.desktop",
     "productName": "ClyoCloud",
@@ -43,19 +44,18 @@
     ],
     "linux": {
       "target": [
-        "AppImage",
-        "deb",
-        "tar.gz"
+        "dir"
       ],
       "category": "Network",
       "icon": "assets/icon.png"
     },
     "win": {
       "target": [
-        "portable",
-        "nsis"
+        "dir"
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "signAndEditExecutable": false,
+      "asarIntegrity": false
     }
   }
 }

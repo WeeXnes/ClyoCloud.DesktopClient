@@ -10,10 +10,21 @@ echo "=================================================="
 echo "          Building ClyoCloud Installer"
 echo "=================================================="
 
-# Ensure framework is setup
+# Ensure framework is setup and SDK TargetFramework aligned
 if [ ! -d "lib/InstallerFramework/src" ]; then
     echo "[!] Framework source missing. Running ./setup.sh..."
     ./setup.sh
+else
+    # Align TargetFramework to current SDK in case SDK changed
+    SDK_MAJOR=$(dotnet --list-sdks 2>/dev/null | awk -F'.' '{print $1}' | sort -n | tail -n 1)
+    if [ -z "$SDK_MAJOR" ]; then
+        SDK_MAJOR=$(dotnet --version 2>/dev/null | cut -d'.' -f1 || echo "10")
+    fi
+    TARGET_TFM="net${SDK_MAJOR}.0"
+    sed -i -E "s/<TargetFramework>net[0-9]+\.0<\/TargetFramework>/<TargetFramework>${TARGET_TFM}<\/TargetFramework>/g" \
+        "$SCRIPT_DIR/ClyoCloudInstaller.csproj" \
+        "$SCRIPT_DIR"/lib/InstallerFramework/src/*/*.csproj \
+        "$SCRIPT_DIR"/lib/InstallerFramework/templates/*/*.csproj 2>/dev/null || true
 fi
 
 build_target() {
@@ -61,11 +72,16 @@ with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
         rm -rf /tmp/clyo-stub
     fi
 
-    echo "[+] Publishing single-file installer for $RID..."
+    echo "[+] Publishing self-contained single-file standalone installer for $RID..."
+    mkdir -p "publish/$RID"
     dotnet publish ClyoCloudInstaller.csproj -c Release -r "$RID" \
+        --self-contained true \
         /p:PublishSingleFile=true \
         /p:IncludeNativeLibrariesForSelfExtract=true \
-        --self-contained true \
+        /p:IncludeAllContentForSelfExtract=true \
+        /p:EnableCompressionInSingleFile=true \
+        /p:DebugType=none \
+        /p:DebugSymbols=false \
         -o "publish/$RID"
 
     # Rename output executable cleanly
@@ -75,7 +91,11 @@ with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
         mv "publish/$RID/ClyoCloudInstaller" "publish/$RID/$OUT_NAME"
     fi
 
-    echo "[SUCCESS] Installer generated at: publish/$RID/$OUT_NAME"
+    # Clean out any leftover pdb, json or dll files so only the single standalone executable remains
+    find "publish/$RID" -mindepth 1 -not -name "$OUT_NAME" -delete
+
+    echo "[SUCCESS] Standalone single-file installer generated at: publish/$RID/$OUT_NAME"
+    ls -lh "publish/$RID/$OUT_NAME"
 }
 
 if [ "$TARGET" = "linux-x64" ] || [ "$TARGET" = "linux" ]; then

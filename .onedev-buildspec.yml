@@ -133,14 +133,17 @@ jobs:
         echo "Compiling standalone single-file installer wizards..."
         ./installer/build.sh all
         mkdir -p ./release
+        rm -rf ./release/*
         if [ -f installer/publish/linux-x64/ClyoCloud-Setup-Linux ]; then
           cp installer/publish/linux-x64/ClyoCloud-Setup-Linux ./release/
         fi
         if [ -f installer/publish/win-x64/ClyoCloud-Setup-Windows.exe ]; then
           cp installer/publish/win-x64/ClyoCloud-Setup-Windows.exe ./release/
         fi
+        echo "Release directory contents:"
+        ls -lh ./release/
     useTTY: true
-    condition: ALWAYS
+    condition: SUCCESSFUL
     optional: false
   - type: PublishArtifactStep
     name: Upload Artifacts

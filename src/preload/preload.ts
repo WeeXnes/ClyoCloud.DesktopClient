@@ -4,9 +4,9 @@ import { ClyoFile } from '../shared/types';
 contextBridge.exposeInMainWorld('electronAPI', {
   getAppState: () => ipcRenderer.invoke('get-app-state'),
   refreshData: () => ipcRenderer.invoke('refresh-data'),
-  loginWithPayload: (payloadStr: string) => ipcRenderer.invoke('login-payload', payloadStr),
-  loginWithCredentials: (u: string, p: string) => ipcRenderer.invoke('login-credentials', { username: u, password: p }),
-  verify2FA: (tempToken: string, code: string, username: string) => ipcRenderer.invoke('verify-2fa', { tempToken, code, username }),
+  loginWithPayload: (payloadStr: string, serverUrl?: string) => ipcRenderer.invoke('login-payload', { payloadStr, serverUrl }),
+  loginWithCredentials: (u: string, p: string, serverUrl?: string) => ipcRenderer.invoke('login-credentials', { username: u, password: p, serverUrl }),
+  verify2FA: (tempToken: string, code: string, username: string, serverUrl?: string) => ipcRenderer.invoke('verify-2fa', { tempToken, code, username, serverUrl }),
   logout: () => ipcRenderer.invoke('logout'),
 
   uploadFiles: (filePaths: string[], destination: string) => ipcRenderer.invoke('upload-files', { filePaths, destination }),

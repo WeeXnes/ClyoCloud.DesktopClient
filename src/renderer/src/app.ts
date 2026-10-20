@@ -5,9 +5,9 @@ declare global {
     electronAPI: {
       getAppState: () => Promise<AppStateData>;
       refreshData: () => Promise<AppStateData>;
-      loginWithPayload: (payloadStr: string) => Promise<{ success: boolean; message: string }>;
-      loginWithCredentials: (u: string, p: string) => Promise<{ success: boolean; requires2fa?: boolean; tempToken?: string; message: string }>;
-      verify2FA: (tempToken: string, code: string, username: string) => Promise<{ success: boolean; message: string }>;
+      loginWithPayload: (payloadStr: string, serverUrl?: string) => Promise<{ success: boolean; message: string }>;
+      loginWithCredentials: (u: string, p: string, serverUrl?: string) => Promise<{ success: boolean; requires2fa?: boolean; tempToken?: string; message: string }>;
+      verify2FA: (tempToken: string, code: string, username: string, serverUrl?: string) => Promise<{ success: boolean; message: string }>;
       logout: () => Promise<AppStateData>;
 
       uploadFiles: (filePaths: string[], destination: string) => Promise<TransferItem[]>;
@@ -132,9 +132,17 @@ class AppRenderer {
   private async loadInitialState(): Promise<void> {
     try {
       this.state = await window.electronAPI.getAppState();
+      if (this.state) {
+        if (this.state.serverUrl && this.loginServerUrl) {
+          this.loginServerUrl.value = this.state.serverUrl;
+        }
+        if (this.state.currentUser && this.loginUsername) {
+          this.loginUsername.value = this.state.currentUser;
+        }
+      }
       this.syncPairs = await window.electronAPI.getSyncPairs();
       this.render();
-      if (this.state.isAuthenticated) {
+      if (this.state?.isAuthenticated) {
         this.loadWallpapers();
       }
     } catch (e) {
@@ -407,7 +415,7 @@ class AppRenderer {
       }
 
       this.btnLoginSubmit.setAttribute('disabled', 'true');
-      const res = await window.electronAPI.loginWithPayload(payload);
+      const res = await window.electronAPI.loginWithPayload(payload, serverUrl);
       this.btnLoginSubmit.removeAttribute('disabled');
 
       if (res.success) {
@@ -428,7 +436,7 @@ class AppRenderer {
         }
 
         this.btnLoginSubmit.setAttribute('disabled', 'true');
-        const res = await window.electronAPI.verify2FA(this.temp2FAToken, code, username);
+        const res = await window.electronAPI.verify2FA(this.temp2FAToken, code, username, serverUrl);
         this.btnLoginSubmit.removeAttribute('disabled');
 
         if (res.success) {
@@ -449,7 +457,7 @@ class AppRenderer {
         }
 
         this.btnLoginSubmit.setAttribute('disabled', 'true');
-        const res = await window.electronAPI.loginWithCredentials(username, password);
+        const res = await window.electronAPI.loginWithCredentials(username, password, serverUrl);
         this.btnLoginSubmit.removeAttribute('disabled');
 
         if (res.requires2fa && res.tempToken) {
@@ -481,6 +489,12 @@ class AppRenderer {
     this.updateStatusBadge();
 
     if (!this.state.isAuthenticated) {
+      if (this.state.serverUrl && (!this.loginServerUrl.value || this.loginServerUrl.value === 'http://localhost:6969')) {
+        this.loginServerUrl.value = this.state.serverUrl;
+      }
+      if (this.state.currentUser && !this.loginUsername.value) {
+        this.loginUsername.value = this.state.currentUser;
+      }
       // Show login pane, hide storage and tabs
       this.storageBar.style.display = 'none';
       this.tabsBar.style.display = 'none';

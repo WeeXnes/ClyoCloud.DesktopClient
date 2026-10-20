@@ -12,6 +12,10 @@ import { TrayManager } from './tray';
 import { getDeviceModelString } from './platform/device';
 import { AppStateData, ClyoFile, TransferItem } from '../shared/types';
 
+// Support self-signed or internal SSL certificates for self-hosted ClyoCloud instances
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+app.commandLine.appendSwitch('ignore-certificate-errors');
+
 // Ensure single instance
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -163,23 +167,27 @@ function setupIpcHandlers(): void {
     return getAppState();
   });
 
-  ipcMain.handle('login-payload', async (_, payloadStr: string) => {
-    const trimmed = payloadStr.trim();
-    let serverUrl = '';
+  ipcMain.handle('login-payload', async (_, args: string | { payloadStr: string; serverUrl?: string }) => {
+    const payloadStr = typeof args === 'string' ? args : args.payloadStr;
+    const explicitServerUrl = typeof args === 'object' && args.serverUrl ? args.serverUrl.trim() : '';
+    const trimmed = (payloadStr || '').trim();
+    let serverUrl = explicitServerUrl;
     let username = '';
     let token = '';
 
     try {
       const parsed = JSON.parse(trimmed);
-      serverUrl = parsed.serverUrl;
-      username = parsed.username;
-      token = parsed.token;
+      if (parsed.serverUrl) serverUrl = parsed.serverUrl;
+      username = parsed.username || '';
+      token = parsed.token || '';
     } catch {
       // Raw token check (JWT)
       if (trimmed.includes('.')) {
         username = SettingsManager.getInstance().getUsername() || 'desktop_user';
         token = trimmed;
-        serverUrl = SettingsManager.getInstance().getServerUrl();
+        if (!serverUrl) {
+          serverUrl = SettingsManager.getInstance().getServerUrl();
+        }
       } else {
         return { success: false, message: 'Invalid QR payload or token format' };
       }
@@ -193,11 +201,14 @@ function setupIpcHandlers(): void {
 
     SyncEngine.getInstance().start();
     await refreshData();
-    return { success: true, message: `Connected to ${serverUrl || 'ClyoCloud'}!` };
+    return { success: true, message: `Connected to ${SettingsManager.getInstance().getServerUrl()}!` };
   });
 
-  ipcMain.handle('login-credentials', async (_, { username, password }) => {
+  ipcMain.handle('login-credentials', async (_, { username, password, serverUrl }) => {
     try {
+      if (serverUrl && typeof serverUrl === 'string' && serverUrl.trim()) {
+        SettingsManager.getInstance().setServerUrl(serverUrl.trim());
+      }
       const res = await ClyoAPIClient.getInstance().login(username, password);
       if (res.requires2fa) {
         return { success: false, requires2fa: true, tempToken: res.tempToken, message: '2FA code required' };
@@ -215,8 +226,11 @@ function setupIpcHandlers(): void {
     }
   });
 
-  ipcMain.handle('verify-2fa', async (_, { tempToken, code, username }) => {
+  ipcMain.handle('verify-2fa', async (_, { tempToken, code, username, serverUrl }) => {
     try {
+      if (serverUrl && typeof serverUrl === 'string' && serverUrl.trim()) {
+        SettingsManager.getInstance().setServerUrl(serverUrl.trim());
+      }
       const token = await ClyoAPIClient.getInstance().verify2FA(tempToken, code);
       SettingsManager.getInstance().setUsername(username);
       SecureStore.getInstance().saveToken(username, token);

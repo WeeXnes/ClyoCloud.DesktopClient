@@ -20,11 +20,33 @@ export class ClyoAPIClient {
   }
 
   private getBaseUrl(): string {
-    let base = SettingsManager.getInstance().getServerUrl();
+    let base = SettingsManager.getInstance().getServerUrl().trim();
+    if (!base) {
+      base = 'http://localhost:6969';
+    }
+    if (!base.startsWith('http://') && !base.startsWith('https://')) {
+      if (base.startsWith('localhost') || base.startsWith('127.0.0.1') || /^192\.168\./.test(base) || /^10\./.test(base)) {
+        base = `http://${base}`;
+      } else {
+        base = `https://${base}`;
+      }
+    }
     if (base.endsWith('/')) {
       base = base.slice(0, -1);
     }
     return base;
+  }
+
+  private async safeFetch(url: string, init?: RequestInit): Promise<Response> {
+    try {
+      return await fetch(url, init);
+    } catch (err: any) {
+      if (err.name === 'TypeError' && err.message === 'fetch failed') {
+        const cause = err.cause ? (err.cause.message || err.cause.code || String(err.cause)) : '';
+        throw new Error(`Cannot reach server at ${this.getBaseUrl()}${cause ? ` (${cause})` : ''}. Please check the server address and network.`);
+      }
+      throw err;
+    }
   }
 
   private getAuthToken(): string | null {
@@ -47,7 +69,7 @@ export class ClyoAPIClient {
 
   public async login(username: string, password: string): Promise<{ token?: string; requires2fa?: boolean; tempToken?: string }> {
     const url = `${this.getBaseUrl()}/api/login`;
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       method: 'POST',
       headers: {
         ...this.makeHeaders(),
@@ -73,7 +95,7 @@ export class ClyoAPIClient {
 
   public async verify2FA(tempToken: string, code: string): Promise<string> {
     const url = `${this.getBaseUrl()}/api/2fa/verify-login`;
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       method: 'POST',
       headers: {
         ...this.makeHeaders(),
@@ -97,7 +119,7 @@ export class ClyoAPIClient {
   public async verifyToken(token: string): Promise<boolean> {
     try {
       const url = `${this.getBaseUrl()}/api/verify`;
-      const res = await fetch(url, {
+      const res = await this.safeFetch(url, {
         headers: this.makeHeaders(token)
       });
       return res.status === 200;
@@ -111,7 +133,7 @@ export class ClyoAPIClient {
     if (remotePath) {
       url.searchParams.set('path', remotePath);
     }
-    const res = await fetch(url.toString(), {
+    const res = await this.safeFetch(url.toString(), {
       headers: this.makeHeaders()
     });
 
@@ -123,7 +145,7 @@ export class ClyoAPIClient {
 
   public async fetchWallpapers(): Promise<ClyoFile[]> {
     const url = `${this.getBaseUrl()}/api/wallpapers`;
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       headers: this.makeHeaders()
     });
 
@@ -135,7 +157,7 @@ export class ClyoAPIClient {
 
   public async fetchStats(): Promise<ServerStats> {
     const url = `${this.getBaseUrl()}/api/stats`;
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       headers: this.makeHeaders()
     });
 
@@ -147,7 +169,7 @@ export class ClyoAPIClient {
 
   public async createFolder(folderName: string, remotePath: string): Promise<void> {
     const url = `${this.getBaseUrl()}/api/folder`;
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       method: 'POST',
       headers: {
         ...this.makeHeaders(),
@@ -162,7 +184,7 @@ export class ClyoAPIClient {
 
   public async renameFile(oldPath: string, newName: string): Promise<void> {
     const url = `${this.getBaseUrl()}/api/rename`;
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       method: 'POST',
       headers: {
         ...this.makeHeaders(),
@@ -177,7 +199,7 @@ export class ClyoAPIClient {
 
   public async deleteFile(remotePath: string, permanent: boolean = false): Promise<void> {
     const url = `${this.getBaseUrl()}/api/files`;
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       method: 'DELETE',
       headers: {
         ...this.makeHeaders(),
@@ -207,7 +229,7 @@ export class ClyoAPIClient {
       formData.append('files', blob, filename);
     }
 
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       method: 'POST',
       headers: this.makeHeaders(),
       body: formData
@@ -227,7 +249,7 @@ export class ClyoAPIClient {
     const blob = new Blob([new Uint8Array(buffer)], { type: mimeType });
     formData.append('files', blob, filename);
 
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       method: 'POST',
       headers: this.makeHeaders(),
       body: formData
@@ -244,7 +266,7 @@ export class ClyoAPIClient {
     const encoded = encodeURI(cleaned);
     const url = `${this.getBaseUrl()}/file/${encoded}`;
 
-    const res = await fetch(url, {
+    const res = await this.safeFetch(url, {
       headers: this.makeHeaders()
     });
 
@@ -272,7 +294,7 @@ export class ClyoAPIClient {
     // 1. Try /thumbnail first
     try {
       const thumbUrl = `${this.getBaseUrl()}/thumbnail/${encoded}`;
-      const res = await fetch(thumbUrl, { headers: this.makeHeaders() });
+      const res = await this.safeFetch(thumbUrl, { headers: this.makeHeaders() });
       if (res.ok) {
         const ct = res.headers.get('content-type') || 'image/jpeg';
         const buffer = Buffer.from(await res.arrayBuffer());
@@ -287,7 +309,7 @@ export class ClyoAPIClient {
     // 2. Fallback to /file
     try {
       const fileUrl = `${this.getBaseUrl()}/file/${encoded}`;
-      const res = await fetch(fileUrl, { headers: this.makeHeaders() });
+      const res = await this.safeFetch(fileUrl, { headers: this.makeHeaders() });
       if (res.ok) {
         const ct = res.headers.get('content-type') || 'image/jpeg';
         const buffer = Buffer.from(await res.arrayBuffer());

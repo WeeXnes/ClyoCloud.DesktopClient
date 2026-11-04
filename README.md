@@ -25,6 +25,7 @@ It lives in your system notification tray with a frosted-glass popover, real-tim
     * **Windows**: Sets wallpaper via `user32.dll` `SystemParametersInfoW`.
     * **Linux**: Automatic detection and native configuration for GNOME, KDE Plasma, XFCE, MATE, Cinnamon, and X11 tools (`feh`, `nitrogen`).
   * Dynamic visual feedback ("Applied!" with checkmark).
+  * **HyDE (Hyprland) support**: when `~/.config/hyde/themes` exists, the button becomes **"Add Wallpaper to Theme"** and only downloads the image into the active theme's `wallpapers/` folder (theme read from `~/.local/state/hyde/staterc`). It never changes the current wallpaper; pick it yourself with HyDE's wallpaper selector.
 
 * **🔄 Real-Time Two-Way Folder Synchronization**:
   * Cross-platform kernel filesystem monitoring via **chokidar** (`ReadDirectoryChangesW` on Windows, `inotify` on Linux) with zero CPU overhead.
@@ -141,6 +142,7 @@ DesktopClient/
     │   │   └── manifest.ts    # Per-pair state manifest manager
     │   ├── platform/
     │   │   ├── wallpaper.ts   # Windows (user32.dll) & Linux (GNOME/KDE/XFCE/feh) wallpaper setter
+    │   │   ├── hyde.ts        # HyDE detection: download wallpapers into the active theme folder
     │   │   ├── autostart.ts   # Windows Registry & Linux XDG autostart manager
     │   │   └── device.ts      # OS release & device model detection
     │   ├── clipboard/

@@ -6,6 +6,7 @@ import { SecureStore } from './storage/secureStore';
 import { ClyoAPIClient } from './api/clyoApi';
 import { SyncEngine } from './sync/syncEngine';
 import { WallpaperManager } from './platform/wallpaper';
+import { addWallpaperToHydeTheme, getWallpaperMode, isHydeInstalled } from './platform/hyde';
 import { AutostartManager } from './platform/autostart';
 import { ClipboardUploader } from './clipboard/uploader';
 import { TrayManager } from './tray';
@@ -312,7 +313,15 @@ function setupIpcHandlers(): void {
   });
 
   ipcMain.handle('set-desktop-wallpaper', async (_, file: ClyoFile) => {
+    // On HyDE wallpapers are managed by the theme; never apply them automatically.
+    if (isHydeInstalled()) return false;
     return await WallpaperManager.getInstance().setAsDesktopWallpaper(file);
+  });
+
+  ipcMain.handle('get-wallpaper-mode', () => getWallpaperMode());
+
+  ipcMain.handle('add-wallpaper-to-hyde-theme', async (_, file: ClyoFile) => {
+    return await addWallpaperToHydeTheme(file);
   });
 
   ipcMain.handle('sync-all', async () => {

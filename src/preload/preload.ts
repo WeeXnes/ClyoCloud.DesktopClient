@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fetchWallpapers: () => ipcRenderer.invoke('fetch-wallpapers'),
   fetchThumbnail: (remotePath: string) => ipcRenderer.invoke('fetch-thumbnail', remotePath),
   setDesktopWallpaper: (file: ClyoFile) => ipcRenderer.invoke('set-desktop-wallpaper', file),
+  getWallpaperMode: () => ipcRenderer.invoke('get-wallpaper-mode'),
+  addWallpaperToHydeTheme: (file: ClyoFile) => ipcRenderer.invoke('add-wallpaper-to-hyde-theme', file),
 
   syncAll: () => ipcRenderer.invoke('sync-all'),
   getSyncPairs: () => ipcRenderer.invoke('get-sync-pairs'),

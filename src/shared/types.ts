@@ -23,6 +23,22 @@ export interface ClyoFile {
   isFolder: boolean;
 }
 
+/** How the Wallpapers tab should behave on this machine. */
+export interface WallpaperMode {
+  /** 'hyde' = HyDE (Hyprland) detected: wallpapers are added to the active theme's folder, never applied. */
+  mode: 'default' | 'hyde';
+  /** Active HyDE theme name (only when mode === 'hyde'). */
+  hydeTheme?: string;
+}
+
+export interface AddToHydeThemeResult {
+  success: boolean;
+  message: string;
+  theme?: string;
+  localPath?: string;
+  alreadyExisted?: boolean;
+}
+
 export interface RAMStats {
   total?: number;
   used?: number;

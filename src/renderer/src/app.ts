@@ -1,4 +1,4 @@
-import { AppStateData, ClyoFile, SyncFolderPair, TransferItem } from '../../shared/types';
+import { AddToHydeThemeResult, AppStateData, ClyoFile, SyncFolderPair, TransferItem, WallpaperMode } from '../../shared/types';
 
 declare global {
   interface Window {
@@ -16,6 +16,8 @@ declare global {
       fetchWallpapers: () => Promise<ClyoFile[]>;
       fetchThumbnail: (remotePath: string) => Promise<string | null>;
       setDesktopWallpaper: (file: ClyoFile) => Promise<boolean>;
+      getWallpaperMode: () => Promise<WallpaperMode>;
+      addWallpaperToHydeTheme: (file: ClyoFile) => Promise<AddToHydeThemeResult>;
 
       syncAll: () => Promise<{ statusMessage: string; lastSyncDate: number | null }>;
       getSyncPairs: () => Promise<SyncFolderPair[]>;
@@ -615,8 +617,14 @@ class AppRenderer {
     this.wallpapersGrid.innerHTML = '';
 
     try {
-      this.wallpapers = await window.electronAPI.fetchWallpapers();
-      this.wallpapersCountLabel.textContent = `Cloud Wallpapers (${this.wallpapers.length})`;
+      const [wallpapers, wpMode] = await Promise.all([
+        window.electronAPI.fetchWallpapers(),
+        window.electronAPI.getWallpaperMode().catch((): WallpaperMode => ({ mode: 'default' })),
+      ]);
+      this.wallpapers = wallpapers;
+      const isHyde = wpMode.mode === 'hyde';
+      this.wallpapersCountLabel.textContent = `Cloud Wallpapers (${this.wallpapers.length})`
+        + (isHyde ? ` · HyDE: ${wpMode.hydeTheme ?? 'unknown theme'}` : '');
       this.wallpapersLoading.style.display = 'none';
 
       if (this.wallpapers.length === 0) {
@@ -648,27 +656,47 @@ class AppRenderer {
 
         const setBtn = document.createElement('button');
         setBtn.className = 'btn-primary btn-wallpaper-set';
-        setBtn.textContent = 'Set as Desktop';
+        const idleLabel = isHyde ? 'Add Wallpaper to Theme' : 'Set as Desktop';
+        setBtn.textContent = idleLabel;
+        if (isHyde) {
+          setBtn.title = 'Download into the active HyDE theme\'s wallpapers folder (does not change your wallpaper)';
+        }
+
+        const resetBtn = () => {
+          setBtn.classList.remove('applied');
+          setBtn.removeAttribute('disabled');
+          setBtn.textContent = idleLabel;
+        };
 
         setBtn.addEventListener('click', async () => {
           setBtn.setAttribute('disabled', 'true');
+
+          if (isHyde) {
+            // HyDE: only download into the current theme's wallpapers folder, never apply.
+            setBtn.textContent = 'Downloading...';
+            const res = await window.electronAPI.addWallpaperToHydeTheme(wp)
+              .catch((e: any): AddToHydeThemeResult => ({ success: false, message: e?.message || 'Failed' }));
+            if (res.success) {
+              setBtn.classList.add('applied');
+              setBtn.textContent = res.alreadyExisted ? `Already in ${res.theme}` : `Added to ${res.theme}!`;
+              if (res.localPath) setBtn.title = res.localPath;
+            } else {
+              setBtn.textContent = 'Failed to Add';
+              setBtn.title = res.message;
+            }
+            setTimeout(resetBtn, 3000);
+            return;
+          }
+
           setBtn.textContent = 'Applying...';
           const ok = await window.electronAPI.setDesktopWallpaper(wp);
           if (ok) {
             setBtn.classList.add('applied');
             setBtn.textContent = 'Applied!';
-            setTimeout(() => {
-              setBtn.classList.remove('applied');
-              setBtn.removeAttribute('disabled');
-              setBtn.textContent = 'Set as Desktop';
-            }, 3000);
           } else {
             setBtn.textContent = 'Failed to Set';
-            setTimeout(() => {
-              setBtn.removeAttribute('disabled');
-              setBtn.textContent = 'Set as Desktop';
-            }, 3000);
           }
+          setTimeout(resetBtn, 3000);
         });
 
         card.appendChild(thumbWrapper);

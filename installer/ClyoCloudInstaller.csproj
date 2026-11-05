@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="payload.zip" Condition="Exists('payload.zip')" />
+    <EmbeddedResource Include="version.txt" Condition="Exists('version.txt')" />
     <None Include="Payload\**" CopyToOutputDirectory="PreserveNewest" Condition="Exists('Payload')" />
   </ItemGroup>
 

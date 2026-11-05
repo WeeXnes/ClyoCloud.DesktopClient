@@ -6,8 +6,13 @@ cd "$SCRIPT_DIR"
 
 TARGET="${1:-all}"
 
+# Extract target ClyoCloud desktop version
+VERSION=$(node -p "require('../package.json').version" 2>/dev/null || grep -oP '"version":\s*"\K[^"]+' ../package.json || echo "1.0.6")
+echo "$VERSION" > "$SCRIPT_DIR/version.txt"
+
 echo "=================================================="
 echo "          Building ClyoCloud Installer"
+echo "          Version: $VERSION"
 echo "=================================================="
 
 # Ensure framework is setup and SDK TargetFramework aligned
@@ -35,6 +40,17 @@ build_target() {
     echo ""
     echo "[+] Preparing payload for $RID..."
     if [ -d "$PAYLOAD_SOURCE" ]; then
+        # Ensure icon files are present in the payload root
+        cp -f "$SCRIPT_DIR/app.png" "$PAYLOAD_SOURCE/clyocloud.png" 2>/dev/null || cp -f "$SCRIPT_DIR/../assets/icon.png" "$PAYLOAD_SOURCE/clyocloud.png" 2>/dev/null || true
+        cp -f "$SCRIPT_DIR/app.png" "$PAYLOAD_SOURCE/icon.png" 2>/dev/null || cp -f "$SCRIPT_DIR/../assets/icon.png" "$PAYLOAD_SOURCE/icon.png" 2>/dev/null || true
+        cp -f "$SCRIPT_DIR/app.ico" "$PAYLOAD_SOURCE/app.ico" 2>/dev/null || cp -f "$SCRIPT_DIR/../assets/icon.ico" "$PAYLOAD_SOURCE/app.ico" 2>/dev/null || true
+        cp -f "$SCRIPT_DIR/app.ico" "$PAYLOAD_SOURCE/icon.ico" 2>/dev/null || cp -f "$SCRIPT_DIR/../assets/icon.ico" "$PAYLOAD_SOURCE/icon.ico" 2>/dev/null || true
+
+        if [ "$RID" = "win-x64" ] && [ -f "$PAYLOAD_SOURCE/clyocloud.exe" ]; then
+            echo "[+] Patching Windows PE executable resources and icon..."
+            node "$SCRIPT_DIR/../scripts/patch-win-exe.js" "$PAYLOAD_SOURCE/clyocloud.exe" || true
+        fi
+
         echo "[+] Zipping payload from $PAYLOAD_SOURCE to payload.zip..."
         rm -f payload.zip
         if command -v zip >/dev/null 2>&1; then
@@ -72,7 +88,7 @@ with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
         rm -rf /tmp/clyo-stub
     fi
 
-    echo "[+] Publishing self-contained single-file standalone installer for $RID..."
+    echo "[+] Publishing self-contained single-file standalone installer for $RID (v$VERSION)..."
     mkdir -p "publish/$RID"
     dotnet publish ClyoCloudInstaller.csproj -c Release -r "$RID" \
         --self-contained true \
@@ -82,6 +98,10 @@ with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
         /p:EnableCompressionInSingleFile=true \
         /p:DebugType=none \
         /p:DebugSymbols=false \
+        /p:Version="$VERSION" \
+        /p:InformationalVersion="$VERSION" \
+        /p:FileVersion="${VERSION}.0" \
+        /p:AssemblyVersion="${VERSION}.0" \
         -o "publish/$RID"
 
     # Rename output executable cleanly

@@ -7,6 +7,7 @@ cd "$SCRIPT_DIR"
 FRAMEWORK_DIR="lib/InstallerFramework"
 REPO_URL="https://code.weexnes.dev/InstallerFramework.git"
 LOCAL_FRAMEWORK="/tmp/InstallerFramework"
+DEV_FRAMEWORK="/home/weexnes/Development/InstallerFramework/InstallerFramework"
 
 echo "=================================================="
 echo "      ClyoCloud Installer Setup Script"
@@ -14,6 +15,10 @@ echo "=================================================="
 
 if [ -d "$FRAMEWORK_DIR/.git" ] || [ -d "$FRAMEWORK_DIR/src" ]; then
     echo "[+] InstallerFramework directory found in '$FRAMEWORK_DIR'."
+elif [ -d "$DEV_FRAMEWORK/src" ]; then
+    echo "[+] Copying InstallerFramework from local dev '$DEV_FRAMEWORK'..."
+    mkdir -p lib
+    cp -r "$DEV_FRAMEWORK" "$FRAMEWORK_DIR"
 elif [ -d "$LOCAL_FRAMEWORK" ]; then
     echo "[+] Copying cached InstallerFramework from '$LOCAL_FRAMEWORK'..."
     mkdir -p lib

@@ -17,6 +17,11 @@ import { AppStateData, ClyoFile, TransferItem } from '../shared/types';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 app.commandLine.appendSwitch('ignore-certificate-errors');
 
+app.setName('ClyoCloud');
+if (process.platform === 'win32') {
+  app.setAppUserModelId('dev.weexnes.clyocloud.desktop');
+}
+
 // Ensure single instance
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -28,8 +33,24 @@ let recentTransfers: TransferItem[] = [];
 let remoteFoldersCache: string[] = ['/'];
 let serverStatsCache: any = null;
 
+function getAppIconPath(): string {
+  const ext = process.platform === 'win32' ? 'ico' : 'png';
+  const candidates = [
+    path.join(__dirname, `../../assets/icon.${ext}`),
+    path.join(__dirname, `../assets/icon.${ext}`),
+    path.join(process.resourcesPath || '', `icon.${ext}`),
+    path.join(path.dirname(process.execPath), `icon.${ext}`)
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return candidates[0];
+}
+
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
+    title: 'ClyoCloud',
+    icon: getAppIconPath(),
     width: 380,
     height: 490,
     show: false,

@@ -1,6 +1,6 @@
 {
   "name": "clyocloud-desktop",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "ClyoCloud Desktop Companion for Windows and Linux",
   "main": "dist/main/index.js",
   "scripts": {
@@ -8,9 +8,9 @@
     "watch": "node scripts/build.js --watch",
     "start": "npm run build && electron .",
     "pack:linux": "npm run build && electron-builder --dir --linux",
-    "pack:win": "npm run build && electron-builder --dir --win",
+    "pack:win": "npm run build && electron-builder --dir --win && node scripts/patch-win-exe.js",
     "package:linux": "npm run build && electron-builder --linux",
-    "package:win": "npm run build && electron-builder --win",
+    "package:win": "npm run build && electron-builder --win && node scripts/patch-win-exe.js",
     "package:all": "npm run build && electron-builder --linux --win",
     "installer:setup": "chmod +x installer/*.sh && ./installer/setup.sh",
     "installer:linux": "npm run pack:linux && ./installer/build.sh linux-x64",
@@ -41,6 +41,16 @@
       "dist/**/*",
       "assets/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/icon.png",
+        "to": "icon.png"
+      },
+      {
+        "from": "assets/icon.ico",
+        "to": "icon.ico"
+      }
     ],
     "linux": {
       "target": [

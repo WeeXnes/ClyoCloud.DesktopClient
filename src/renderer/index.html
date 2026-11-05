@@ -12,7 +12,7 @@
     <!-- Top Header Bar -->
     <header class="app-header">
       <div class="brand-section">
-        <img src="../assets/icon.png" class="brand-logo" alt="ClyoCloud" style="width: 20px; height: 20px; border-radius: 4px; object-fit: contain;">
+        <img src="../assets/icon.png" class="brand-logo" alt="ClyoCloud">
         <span class="brand-title">ClyoCloud</span>
         <div class="status-badge">
           <span id="status-dot" class="status-dot disconnected"></span>
@@ -21,13 +21,13 @@
       </div>
       <div class="header-actions">
         <button id="btn-refresh" class="btn-icon" title="Refresh Data">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 4 23 10 17 10"></polyline>
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
           </svg>
         </button>
         <button id="btn-quit" class="btn-icon" title="Quit ClyoCloud">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
             <line x1="12" y1="2" x2="12" y2="12"></line>
           </svg>
@@ -40,7 +40,7 @@
       <div class="progress-track">
         <div id="storage-progress-fill" class="progress-fill" style="width: 0%;"></div>
       </div>
-      <span id="storage-text" class="storage-text">0 B / 0 B</span>
+      <span id="storage-text" class="storage-text num">0 B / 0 B</span>
     </div>
 
     <!-- Tab Selector -->
@@ -69,15 +69,15 @@
       <section id="pane-login" class="tab-pane active">
         <div class="login-container">
           <div class="login-brand-banner">
-            <img src="../assets/icon.png" class="login-brand-icon" alt="ClyoCloud" style="width: 34px; height: 34px; border-radius: 8px; object-fit: contain;">
+            <img src="../assets/icon.png" class="login-brand-icon" alt="ClyoCloud">
             <div>
               <div class="login-brand-title">ClyoCloud</div>
-              <div class="login-brand-sub">Windows & Linux Companion Client</div>
+              <div class="login-brand-sub micro">Companion Client</div>
             </div>
           </div>
 
           <div class="login-field-group">
-            <label class="login-label">Server Address</label>
+            <label class="login-label micro">Server Address</label>
             <input type="text" id="login-server-url" placeholder="https://cloud.example.com or http://localhost:6969">
           </div>
 
@@ -88,33 +88,33 @@
 
           <!-- Token mode -->
           <div id="flow-token" class="login-field-group">
-            <label class="login-label">Paste Token or QR JSON</label>
-            <textarea id="login-payload-input" rows="3" placeholder='{"serverUrl":"...","username":"...","token":"..."} or raw JWT token' style="font-family: monospace; font-size: 11px;"></textarea>
+            <label class="login-label micro">Paste Token or QR JSON</label>
+            <textarea id="login-payload-input" rows="3" placeholder='{"serverUrl":"...","username":"...","token":"..."} or raw token'></textarea>
             <span class="login-tip">Tip: In ClyoCloud Web settings, click "Generate Login QR Code" and copy the token or payload.</span>
           </div>
 
           <!-- Credentials mode -->
           <div id="flow-creds" class="login-field-group" style="display: none;">
             <div id="creds-step-1">
-              <div class="login-field-group" style="margin-bottom: 6px;">
-                <label class="login-label">Username</label>
+              <div class="login-field-group" style="margin-bottom: 8px;">
+                <label class="login-label micro">Username</label>
                 <input type="text" id="login-username" placeholder="Username">
               </div>
               <div class="login-field-group">
-                <label class="login-label">Password</label>
+                <label class="login-label micro">Password</label>
                 <input type="password" id="login-password" placeholder="Password">
               </div>
             </div>
             <div id="creds-step-2fa" style="display: none;">
-              <label class="login-label">Two-Factor Authentication</label>
+              <label class="login-label micro">Two-Factor Authentication</label>
               <span class="login-tip">Enter the 6-digit TOTP code or emergency recovery key.</span>
-              <input type="text" id="login-2fa-code" placeholder="123456" style="margin-top: 4px; font-size: 14px; font-weight: bold; letter-spacing: 2px;">
+              <input type="text" id="login-2fa-code" placeholder="123456" class="num" style="margin-top: 6px; font-size: 14px; font-weight: 600; letter-spacing: 3px; text-align: center;">
             </div>
           </div>
 
           <div id="login-msg" class="login-message" style="display: none;"></div>
 
-          <button id="btn-login-submit" class="btn-primary" style="margin-top: auto;">
+          <button id="btn-login-submit" class="btn-primary" style="margin-top: auto; width: 100%;">
             <span>Connect & Login</span>
           </button>
         </div>
@@ -123,22 +123,24 @@
       <!-- 2. UPLOAD PANE -->
       <section id="pane-upload" class="tab-pane">
         <div class="upload-destination-bar">
-          <label>Destination:</label>
+          <label class="micro">Destination</label>
           <select id="upload-destination-select">
             <option value="/">Cloud Root (/)</option>
           </select>
         </div>
 
         <div id="drop-zone" class="drop-zone-box">
-          <svg class="drop-zone-icon" viewBox="0 0 24 24">
-            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+          <svg class="drop-zone-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
-          <div class="drop-zone-title">Drag & Drop files or folders here</div>
+          <div class="drop-zone-title">Drop files or folders here</div>
           <div class="drop-zone-sub">or choose an action below</div>
           <div class="drop-zone-actions">
             <button id="btn-browse-files" class="btn-secondary">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-              <span>Browse Files</span>
+              <span>Browse</span>
             </button>
             <button id="btn-upload-clipboard" class="btn-primary">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg>
@@ -150,27 +152,27 @@
         <div id="clipboard-status" class="clipboard-status-text" style="display: none;"></div>
 
         <div id="transfers-section" class="transfers-section" style="display: none;">
-          <div class="transfers-header">Recent Transfers</div>
-          <div id="transfers-list" class="transfers-list"></div>
+          <div class="transfers-header micro">Recent Transfers</div>
+          <div id="transfers-list" class="transfers-list hair-list"></div>
         </div>
       </section>
 
       <!-- 3. WALLPAPERS PANE -->
       <section id="pane-wallpapers" class="tab-pane">
         <div class="wallpapers-header-bar">
-          <span id="wallpapers-count-label">Cloud Wallpapers (0)</span>
+          <span id="wallpapers-count-label" class="micro">Cloud Wallpapers (0)</span>
           <button id="btn-reload-wallpapers" class="btn-icon" title="Reload Wallpapers">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
           </button>
         </div>
 
-        <div id="wallpapers-loading" style="text-align: center; padding: 40px 10px; color: var(--text-secondary); display: none;">
-          Loading cloud wallpapers...
+        <div id="wallpapers-loading" class="empty-state" style="display: none;">
+          <div class="empty-sub">Loading cloud wallpapers...</div>
         </div>
 
-        <div id="wallpapers-empty" style="text-align: center; padding: 40px 10px; color: var(--text-secondary); display: none;">
-          <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">No wallpapers found</div>
-          <div style="font-size: 10px; color: var(--text-muted);">Flag or tag images as "Wallpaper" in ClyoCloud to manage and set them here.</div>
+        <div id="wallpapers-empty" class="empty-state" style="display: none;">
+          <div class="empty-title">No wallpapers found</div>
+          <div class="empty-sub">Tag images as "Wallpaper" in ClyoCloud to manage and set them here.</div>
         </div>
 
         <div id="wallpapers-grid" class="wallpapers-grid"></div>
@@ -181,7 +183,7 @@
         <div class="sync-header-bar">
           <div class="sync-status-heading">
             <span class="title">Synced Folders</span>
-            <span id="sync-sub-status" class="sub">All folders up to date</span>
+            <span id="sync-sub-status" class="sub micro">All folders up to date</span>
           </div>
           <div class="sync-header-actions">
             <button id="btn-sync-now" class="btn-secondary">
@@ -194,32 +196,31 @@
           </div>
         </div>
 
-        <div id="sync-empty-state" style="text-align: center; padding: 36px 14px; color: var(--text-secondary); display: none;">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="var(--text-muted)" style="margin-bottom: 8px;"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></svg>
-          <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">No synced folders</div>
-          <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 12px;">Add a local directory to keep it synchronized two-way with your ClyoCloud.</div>
-          <button id="btn-empty-add-folder" class="btn-primary">Add Synced Folder</button>
+        <div id="sync-empty-state" class="empty-state" style="display: none;">
+          <div class="empty-title">No synced folders</div>
+          <div class="empty-sub">Add a local directory to keep it synchronized two-way with ClyoCloud.</div>
+          <button id="btn-empty-add-folder" class="btn-primary" style="margin-top: 10px;">Add Synced Folder</button>
         </div>
 
-        <div id="synced-folders-list" class="synced-folders-list"></div>
+        <div id="synced-folders-list" class="synced-folders-list hair-list"></div>
       </section>
 
       <!-- 5. SETTINGS PANE -->
       <section id="pane-settings" class="tab-pane">
         <!-- Connected User -->
         <div class="settings-section">
-          <div class="settings-section-title">Connected Account</div>
+          <div class="settings-section-title micro">Connected Account</div>
           <div class="settings-card">
             <div class="user-profile-row">
               <div class="user-avatar">
-                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
               </div>
               <div class="user-meta">
                 <div id="settings-user-name" class="user-name">User</div>
-                <div id="settings-server-url" class="user-server">http://localhost:6969</div>
+                <div id="settings-server-url" class="user-server num">http://localhost:6969</div>
               </div>
               <button id="btn-open-web" class="btn-icon" title="Open Web Dashboard">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
               </button>
             </div>
           </div>
@@ -227,20 +228,20 @@
 
         <!-- Metrics Section -->
         <div id="settings-metrics-section" class="settings-section" style="display: none;">
-          <div class="settings-section-title">Server Resource Metrics</div>
+          <div class="settings-section-title micro">Server Resource Metrics</div>
           <div class="settings-card">
-            <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px;">Storage Quota</div>
-            <div class="progress-track" style="margin-bottom: 8px;">
+            <div class="micro" style="margin-bottom: 6px;">Storage Quota</div>
+            <div class="progress-track" style="margin-bottom: 10px;">
               <div id="metrics-storage-fill" class="progress-fill" style="width: 0%;"></div>
             </div>
             <div class="metrics-row">
               <div id="metric-cpu-group" class="metric-item" style="display: none;">
-                <span class="metric-label">CPU Load</span>
-                <span id="metric-cpu-val" class="metric-value">0.0%</span>
+                <span class="metric-label micro">CPU Load</span>
+                <span id="metric-cpu-val" class="metric-value num">0.0%</span>
               </div>
               <div id="metric-ram-group" class="metric-item" style="display: none;">
-                <span class="metric-label">RAM Usage</span>
-                <span id="metric-ram-val" class="metric-value">0.0%</span>
+                <span class="metric-label micro">RAM Usage</span>
+                <span id="metric-ram-val" class="metric-value num">0.0%</span>
               </div>
             </div>
           </div>
@@ -248,46 +249,46 @@
 
         <!-- Preferences -->
         <div class="settings-section">
-          <div class="settings-section-title">Preferences</div>
+          <div class="settings-section-title micro">Preferences</div>
           <div class="settings-card" style="display: flex; flex-direction: column; gap: 10px;">
             <div class="toggle-row">
-              <span style="font-size: 11px;">Launch at System Login</span>
+              <span style="font-size: 13px; color: var(--text);">Launch at System Login</span>
               <label class="toggle-switch">
                 <input type="checkbox" id="pref-launch-login">
                 <span class="slider"></span>
               </label>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-secondary); border-top: 1px solid rgba(255,255,255,0.04); padding-top: 6px;">
-              <span>Device Model</span>
-              <span id="settings-device-model" style="font-weight: 500; color: var(--text-main);">Desktop</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; border-top: 1px solid var(--line); padding-top: 8px;">
+              <span class="micro">Device Model</span>
+              <span id="settings-device-model" class="num" style="color: var(--text);">Desktop</span>
             </div>
           </div>
         </div>
 
         <!-- Actions -->
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
           <button id="btn-open-browser" class="btn-secondary" style="width: 100%;">Open ClyoCloud in Browser</button>
           <button id="btn-sign-out" class="btn-danger" style="width: 100%;">Sign Out</button>
         </div>
 
-        <div class="version-footer">ClyoCloud Desktop • Version 1.0.0</div>
+        <div class="version-footer micro">ClyoCloud Desktop · v1.0.7</div>
       </section>
     </main>
 
     <!-- Modal: Add Synced Folder -->
     <div id="modal-add-folder" class="modal-overlay">
       <div class="modal-content">
-        <div style="font-size: 13px; font-weight: 700; margin-bottom: 12px;">Add Synced Folder</div>
-        <div class="login-field-group" style="margin-bottom: 10px;">
-          <label class="login-label">Local Folder</label>
+        <div class="modal-title">Add Synced Folder</div>
+        <div class="login-field-group" style="margin-bottom: 12px;">
+          <label class="login-label micro">Local Folder</label>
           <div style="display: flex; gap: 6px;">
-            <input type="text" id="modal-local-path" placeholder="/home/.../Folder or C:\..." style="font-size: 11px;">
-            <button id="btn-modal-browse" class="btn-secondary" style="white-space: nowrap;">Browse...</button>
+            <input type="text" id="modal-local-path" placeholder="/home/.../Folder or C:\..." style="font-size: 12px;">
+            <button id="btn-modal-browse" class="btn-secondary" style="white-space: nowrap;">Browse</button>
           </div>
         </div>
-        <div class="login-field-group" style="margin-bottom: 14px;">
-          <label class="login-label">Cloud Folder Name</label>
-          <input type="text" id="modal-remote-path" placeholder="e.g. MySync or leave blank for root" style="font-size: 11px;">
+        <div class="login-field-group" style="margin-bottom: 16px;">
+          <label class="login-label micro">Cloud Folder Name</label>
+          <input type="text" id="modal-remote-path" placeholder="e.g. MySync or leave blank for root" style="font-size: 12px;">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           <button id="btn-modal-cancel" class="btn-secondary">Cancel</button>

@@ -263,7 +263,7 @@ class AppRenderer {
       this.clipboardBtnText.textContent = 'Upload Clipboard';
       this.clipboardStatus.textContent = res.message;
       this.clipboardStatus.style.display = 'block';
-      this.clipboardStatus.style.color = res.success ? 'var(--accent-green)' : 'var(--accent-red)';
+      this.clipboardStatus.style.color = res.success ? 'var(--success)' : 'var(--danger)';
     });
 
     // Wallpapers
@@ -378,7 +378,7 @@ class AppRenderer {
     window.electronAPI.onClipboardUploaded((res) => {
       this.clipboardStatus.textContent = res.message;
       this.clipboardStatus.style.display = 'block';
-      this.clipboardStatus.style.color = res.success ? 'var(--accent-green)' : 'var(--accent-red)';
+      this.clipboardStatus.style.color = res.success ? 'var(--success)' : 'var(--danger)';
     });
   }
 
@@ -564,15 +564,15 @@ class AppRenderer {
     if (this.state.isSyncing) {
       this.statusDot.className = 'status-dot syncing';
       this.statusText.textContent = 'Syncing';
-      this.statusText.style.color = 'var(--accent-blue)';
+      this.statusText.style.color = 'var(--text)';
     } else if (this.state.isAuthenticated) {
       this.statusDot.className = 'status-dot connected';
       this.statusText.textContent = 'Connected';
-      this.statusText.style.color = 'var(--text-secondary)';
+      this.statusText.style.color = 'var(--text-2)';
     } else {
       this.statusDot.className = 'status-dot disconnected';
       this.statusText.textContent = 'Disconnected';
-      this.statusText.style.color = 'var(--text-secondary)';
+      this.statusText.style.color = 'var(--text-3)';
     }
   }
 
@@ -596,14 +596,14 @@ class AppRenderer {
         statusHtml = `<span class="transfer-badge failed" title="${item.status.error}">Failed</span>`;
       } else {
         const pct = Math.round(item.progress * 100);
-        statusHtml = `<span style="font-size: 9px; color: var(--accent-blue);">${pct}%</span>`;
+        statusHtml = `<span class="transfer-pct num">${pct}%</span>`;
       }
 
       card.innerHTML = `
         <svg class="transfer-icon" viewBox="0 0 24 24"><path d="M12 2L6.5 7.5l1.42 1.41L11 5.83V16h2V5.83l3.08 3.09 1.42-1.42L12 2zm-8 18v2h16v-2H4z"/></svg>
         <div class="transfer-info">
           <div class="transfer-name" title="${item.name}">${item.name}</div>
-          <div class="transfer-size">${item.size > 0 ? this.formatBytes(item.size) : ''}</div>
+          <div class="transfer-size num">${item.size > 0 ? this.formatBytes(item.size) : ''}</div>
         </div>
         ${statusHtml}
       `;
@@ -638,14 +638,14 @@ class AppRenderer {
 
         const thumbWrapper = document.createElement('div');
         thumbWrapper.className = 'wallpaper-thumb-wrapper';
-        thumbWrapper.innerHTML = `<span style="font-size: 9px; color: var(--text-muted);">Loading...</span>`;
+        thumbWrapper.innerHTML = `<span class="micro">Loading...</span>`;
 
         // Async load thumbnail
         window.electronAPI.fetchThumbnail(wp.name).then(dataUrl => {
           if (dataUrl) {
             thumbWrapper.innerHTML = `<img src="${dataUrl}" class="wallpaper-thumb-img" alt="${wp.name}">`;
           } else {
-            thumbWrapper.innerHTML = `<span style="font-size: 9px; color: var(--text-muted);">No Preview</span>`;
+            thumbWrapper.innerHTML = `<span class="micro">No Preview</span>`;
           }
         });
 
@@ -655,7 +655,7 @@ class AppRenderer {
         nameLabel.title = wp.name;
 
         const setBtn = document.createElement('button');
-        setBtn.className = 'btn-primary btn-wallpaper-set';
+        setBtn.className = 'btn-secondary btn-wallpaper-set';
         const idleLabel = isHyde ? 'Add Wallpaper to Theme' : 'Set as Desktop';
         setBtn.textContent = idleLabel;
         if (isHyde) {
@@ -707,7 +707,7 @@ class AppRenderer {
     } catch (e) {
       this.wallpapersLoading.style.display = 'none';
       this.wallpapersEmpty.style.display = 'block';
-      this.wallpapersEmpty.innerHTML = `<div style="color: var(--accent-red); font-size: 11px;">Failed to load wallpapers</div>`;
+      this.wallpapersEmpty.innerHTML = `<div class="empty-sub" style="color: var(--danger);">Failed to load wallpapers</div>`;
     }
   }
 
@@ -741,7 +741,7 @@ class AppRenderer {
             <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
             <div class="sync-pair-names">
               <div class="sync-pair-name">${folderName}</div>
-              <div class="sync-pair-path" title="${pair.localPath}">${pair.localPath}</div>
+              <div class="sync-pair-path num" title="${pair.localPath}">${pair.localPath}</div>
             </div>
           </div>
           <span class="${badgeClass}">${pair.statusDescription}</span>
@@ -750,8 +750,8 @@ class AppRenderer {
           </button>
         </div>
         <div class="sync-pair-row2">
-          <span>Remote: ${remoteName}</span>
-          <span>${pair.lastSyncTime ? 'Synced ' + this.formatTimeAgo(pair.lastSyncTime) : 'Not synced yet'}</span>
+          <span>Remote: <span class="num">${remoteName}</span></span>
+          <span class="num">${pair.lastSyncTime ? 'Synced ' + this.formatTimeAgo(pair.lastSyncTime) : 'Not synced yet'}</span>
         </div>
       `;
 

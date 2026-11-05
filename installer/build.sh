@@ -23,7 +23,10 @@ else
     # Align TargetFramework to current SDK in case SDK changed
     SDK_MAJOR=$(dotnet --list-sdks 2>/dev/null | awk -F'.' '{print $1}' | sort -n | tail -n 1)
     if [ -z "$SDK_MAJOR" ]; then
-        SDK_MAJOR=$(dotnet --version 2>/dev/null | cut -d'.' -f1 || echo "10")
+        SDK_MAJOR=$(dotnet --version 2>/dev/null | cut -d'.' -f1)
+    fi
+    if [ -z "$SDK_MAJOR" ]; then
+        SDK_MAJOR="8"
     fi
     TARGET_TFM="net${SDK_MAJOR}.0"
     sed -i -E "s/<TargetFramework>net[0-9]+\.0<\/TargetFramework>/<TargetFramework>${TARGET_TFM}<\/TargetFramework>/g" \

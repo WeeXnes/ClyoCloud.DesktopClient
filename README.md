@@ -74,6 +74,21 @@ npm run build
 npm start
 ```
 
+### Direct System Installation (Clone & Install)
+You can install ClyoCloud directly into your desktop environment with application launcher shortcuts, desktop icons, and terminal command integration identical to running the setup wizard:
+
+```bash
+git clone https://code.weexnes.dev/ClyoCloud/DesktopClient.git
+cd DesktopClient
+npm install
+npm run install   # or 'make install'
+```
+
+To remove the installation:
+```bash
+npm run uninstall # or 'make uninstall'
+```
+
 ### Packaging Binaries & Installers
 
 #### 1. Quick Installer Build (All Platforms)

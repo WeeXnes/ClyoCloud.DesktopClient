@@ -1,4 +1,4 @@
-.PHONY: all build run pack-linux pack-win package-linux package-win installer-setup installer-linux installer-win installer-all clean
+.PHONY: all build run install uninstall pack-linux pack-win package-linux package-win installer-setup installer-linux installer-win installer-all clean
 
 all: build
 
@@ -7,6 +7,12 @@ build:
 
 run: build
 	npm start
+
+install:
+	npm run install
+
+uninstall:
+	npm run uninstall
 
 pack-linux: build
 	npm run pack:linux

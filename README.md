@@ -11,7 +11,7 @@ It lives in your system notification tray with a frosted-glass popover, real-tim
 * **⚡ Native System Tray Integration**:
   * Clean monochrome tray icon (cloud idle, active rotating blue sync icon during transfers).
   * Left-click opens the frosted-glass popover anchored to the tray; right-click opens a quick utility context menu (`Open Web`, `Sync All Now`, `Upload Clipboard`, `Preferences`, `Quit`).
-  * Seamless auto-hide on blur (clicking outside the window), matching macOS NSPopover behavior.
+  * Seamless auto-hide on blur (clicking outside the window), matching macOS NSPopover behavior (automatically disabled on tiling environments like HyDE/Hyprland so the window remains open alongside other desktop windows).
 
 * **📂 Drag-and-Drop Upload Zone**:
   * Glassmorphic drag target accepting multiple files or folders from Windows File Explorer / Linux file managers.

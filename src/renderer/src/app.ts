@@ -52,6 +52,7 @@ class AppRenderer {
   private statusDot = document.getElementById('status-dot')!;
   private statusText = document.getElementById('status-text')!;
   private btnRefresh = document.getElementById('btn-refresh')!;
+  private btnClose = document.getElementById('btn-close');
   private btnQuit = document.getElementById('btn-quit')!;
   private storageBar = document.getElementById('storage-bar')!;
   private storageProgressFill = document.getElementById('storage-progress-fill')!;
@@ -163,8 +164,19 @@ class AppRenderer {
       }, 800);
     });
 
+    this.btnClose?.addEventListener('click', () => {
+      window.electronAPI.hideWindow();
+    });
+
     this.btnQuit.addEventListener('click', () => {
       window.electronAPI.quitApp();
+    });
+
+    // ESC closes/hides the popover window
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        window.electronAPI.hideWindow();
+      }
     });
 
     // Tab Navigation

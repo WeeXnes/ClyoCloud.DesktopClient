@@ -6,7 +6,7 @@ import { SecureStore } from './storage/secureStore';
 import { ClyoAPIClient } from './api/clyoApi';
 import { SyncEngine } from './sync/syncEngine';
 import { WallpaperManager } from './platform/wallpaper';
-import { addWallpaperToHydeTheme, getWallpaperMode, isHydeInstalled } from './platform/hyde';
+import { addWallpaperToHydeTheme, getWallpaperMode, isHydeInstalled, isHydeOrHyprland } from './platform/hyde';
 import { AutostartManager } from './platform/autostart';
 import { ClipboardUploader } from './clipboard/uploader';
 import { TrayManager } from './tray';
@@ -29,6 +29,7 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let isQuitting = false;
 let recentTransfers: TransferItem[] = [];
 let remoteFoldersCache: string[] = ['/'];
 let serverStatsCache: any = null;
@@ -72,9 +73,20 @@ function createWindow(): BrowserWindow {
   win.loadFile(htmlPath);
 
   // Auto-hide when focus is lost (like macOS NSPopover)
-  win.on('blur', () => {
-    // Avoid hiding immediately if dialog is open
-    if (!win.webContents.isDevToolsOpened()) {
+  // Disabled on Linux Hyprland / HyDE tiling environments where it causes the window to disappear immediately
+  if (!isHydeOrHyprland()) {
+    win.on('blur', () => {
+      // Avoid hiding immediately if dialog is open
+      if (!win.webContents.isDevToolsOpened()) {
+        win.hide();
+      }
+    });
+  }
+
+  // Intercept window close (e.g. WM close request or Hyprland killactive) and hide instead
+  win.on('close', (e) => {
+    if (!isQuitting) {
+      e.preventDefault();
       win.hide();
     }
   });
@@ -126,6 +138,10 @@ app.whenReady().then(async () => {
   });
 
   setupIpcHandlers();
+});
+
+app.on('before-quit', () => {
+  isQuitting = true;
 });
 
 app.on('will-quit', () => {

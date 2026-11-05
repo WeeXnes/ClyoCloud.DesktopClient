@@ -56,6 +56,42 @@ export function isHydeInstalled(): boolean {
   }
 }
 
+/**
+ * Detects whether the current session is running under HyDE or Hyprland.
+ * On tiling window managers like Hyprland / HyDE, auto-hiding on blur causes
+ * the window to disappear immediately when other windows exist on the workspace.
+ */
+export function isHydeOrHyprland(): boolean {
+  if (os.platform() !== 'linux') return false;
+  if (Boolean(process.env.HYPRLAND_INSTANCE_SIGNATURE)) return true;
+
+  const desktop = [
+    process.env.XDG_CURRENT_DESKTOP,
+    process.env.DESKTOP_SESSION,
+    process.env.XDG_SESSION_DESKTOP,
+    process.env.GDMSESSION
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  if (desktop.includes('hyprland') || desktop.includes('hyde')) {
+    return true;
+  }
+
+  if (isHydeInstalled()) return true;
+
+  try {
+    if (fs.existsSync(path.join(configHome(), 'hyde'))) {
+      return true;
+    }
+  } catch {
+    // ignore
+  }
+
+  return false;
+}
+
 /** Returns the currently selected HyDE theme, or null if it can't be determined. */
 export function getActiveHydeTheme(): string | null {
   if (!isHydeInstalled()) return null;

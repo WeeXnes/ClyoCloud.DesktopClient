@@ -1,4 +1,5 @@
 import path from 'path';
+import { AppWindowManager } from './appWindow';
 import { app, Tray, Menu, BrowserWindow, screen, nativeImage, shell } from 'electron';
 import { SettingsManager } from './storage/settings';
 import { SyncEngine } from './sync/syncEngine';
@@ -117,8 +118,13 @@ export class TrayManager {
       { label: statusTitle, enabled: false },
       { type: 'separator' },
       {
-        label: 'Open ClyoCloud Web',
-        accelerator: 'CmdOrCtrl+W',
+        label: 'Open ClyoCloud',
+        click: () => {
+          AppWindowManager.getInstance().show().catch(console.error);
+        }
+      },
+      {
+        label: 'Open in Browser',
         click: () => {
           shell.openExternal(serverUrl);
         }

@@ -1,6 +1,6 @@
 {
   "name": "clyocloud-desktop",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "ClyoCloud Desktop Companion for Windows and Linux",
   "main": "dist/main/index.js",
   "scripts": {
@@ -11,6 +11,7 @@
     "install:app": "node scripts/install.js",
     "uninstall": "node scripts/install.js --uninstall",
     "uninstall:app": "node scripts/install.js --uninstall",
+    "e2e:build": "npm run build && esbuild scripts/e2e-app-window.ts --bundle --platform=node --target=node20 --external:electron --outfile=dist/main/e2e-harness.js",
     "pack:linux": "npm run build && electron-builder --dir --linux",
     "pack:win": "npm run build && electron-builder --dir --win && node scripts/patch-win-exe.js",
     "package:linux": "npm run build && electron-builder --linux",
@@ -43,6 +44,7 @@
     },
     "files": [
       "dist/**/*",
+      "!dist/main/e2e-harness*",
       "assets/**/*",
       "package.json"
     ],

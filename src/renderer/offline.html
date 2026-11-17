@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'" />
+  <title>ClyoCloud</title>
+  <style>
+    :root { --bg:#000; --surface:#0a0a0a; --surface-2:#141414; --line:#1f1f1f; --line-strong:#333; --text:#fafafa; --text-2:#a3a3a3; --text-3:#808080; --invert:#fafafa; --on-invert:#000; --danger:#f87171; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text-2); font: 15px/1.6 system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    main { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .box { width: 100%; max-width: 440px; }
+    .brand { color: var(--text); font-weight: 600; margin-bottom: 48px; }
+    h1 { color: var(--text); font-size: 30px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 8px; }
+    p { margin: 0 0 24px; }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 24px; }
+    .dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--danger); flex-shrink: 0; }
+    label { display: block; font: 11px/1.4 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin-bottom: 6px; }
+    input { width: 100%; height: 40px; padding: 0 12px; background: var(--surface); color: var(--text); border: 1px solid var(--line-strong); border-radius: 10px; font: 14px ui-monospace, monospace; outline: none; transition: border-color 120ms; }
+    input:focus { border-color: var(--text); }
+    .row { display: flex; gap: 8px; margin-top: 16px; }
+    button { height: 40px; padding: 0 16px; border-radius: 9999px; font: 500 14px system-ui, sans-serif; cursor: pointer; border: 1px solid var(--line-strong); background: transparent; color: var(--text); transition: background-color 120ms, opacity 120ms; }
+    button:hover { background: var(--surface-2); }
+    button.primary { background: var(--invert); border-color: var(--invert); color: var(--on-invert); flex: 1; }
+    button.primary:hover { opacity: .86; }
+    button:disabled { opacity: .5; cursor: default; }
+    :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="box">
+      <div class="brand">ClyoCloud</div>
+      <h1 id="title">Can't reach your server</h1>
+      <p id="text">Check that the server is running and this computer is on the same network, then try again.</p>
+      <div class="status" id="status"><span class="dot"></span><span id="detail"></span></div>
+      <label for="server">Server</label>
+      <input id="server" placeholder="http://192.168.1.10:6969" autocomplete="off" spellcheck="false" />
+      <div class="row">
+        <button id="retry">Try again</button>
+        <button id="connect" class="primary">Connect</button>
+      </div>
+    </div>
+  </main>
+  <script>
+    const q = new URLSearchParams(location.search);
+    const input = document.getElementById('server');
+    input.value = q.get('server') || '';
+    if (q.get('reason') === 'setup') {
+      document.getElementById('title').textContent = 'Connect to ClyoCloud';
+      document.getElementById('text').textContent = 'Enter the address of your ClyoCloud server.';
+      document.getElementById('status').style.display = 'none';
+    } else {
+      document.getElementById('detail').textContent = (q.get('detail') || 'No connection') + (q.get('server') ? ' · ' + q.get('server') : '');
+    }
+    const busy = (b) => document.querySelectorAll('button').forEach((x) => (x.disabled = b));
+    document.getElementById('retry').onclick = () => { busy(true); window.clyoDesktop.retry(); };
+    const connect = () => { if (!input.value.trim()) return input.focus(); busy(true); window.clyoDesktop.connect(input.value.trim()); };
+    document.getElementById('connect').onclick = connect;
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') connect(); });
+  </script>
+</body>
+</html>

@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openDirectoryDialog: () => ipcRenderer.invoke('open-directory-dialog'),
   openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
+  openAppWindow: (pathOnServer?: string) => ipcRenderer.invoke('open-app-window', pathOnServer),
   quitApp: () => ipcRenderer.invoke('quit-app'),
   hideWindow: () => ipcRenderer.invoke('hide-window'),
 

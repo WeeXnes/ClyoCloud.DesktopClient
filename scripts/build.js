@@ -29,6 +29,7 @@ function copyAssets() {
 
   // Copy HTML
   fs.copyFileSync('src/renderer/index.html', 'dist/renderer/index.html');
+  fs.copyFileSync('src/renderer/offline.html', 'dist/renderer/offline.html');
 
   // Copy Styles
   copyDirSync('src/renderer/styles', 'dist/renderer/styles');
@@ -65,6 +66,17 @@ async function build() {
     sourcemap: true
   });
 
+  // 2b. Preload for the full app window (only bridges the local offline page)
+  const appPreloadCtx = await esbuild.context({
+    entryPoints: ['src/preload/appPreload.ts'],
+    outfile: 'dist/preload/appPreload.js',
+    bundle: true,
+    platform: 'node',
+    target: 'node20',
+    external: ['electron'],
+    sourcemap: true
+  });
+
   // 3. Renderer Script
   const rendererCtx = await esbuild.context({
     entryPoints: ['src/renderer/src/app.ts'],
@@ -76,11 +88,11 @@ async function build() {
   });
 
   if (isWatch) {
-    await Promise.all([mainCtx.watch(), preloadCtx.watch(), rendererCtx.watch()]);
+    await Promise.all([mainCtx.watch(), preloadCtx.watch(), appPreloadCtx.watch(), rendererCtx.watch()]);
     console.log('==> Watching for changes...');
   } else {
-    await Promise.all([mainCtx.rebuild(), preloadCtx.rebuild(), rendererCtx.rebuild()]);
-    await Promise.all([mainCtx.dispose(), preloadCtx.dispose(), rendererCtx.dispose()]);
+    await Promise.all([mainCtx.rebuild(), preloadCtx.rebuild(), appPreloadCtx.rebuild(), rendererCtx.rebuild()]);
+    await Promise.all([mainCtx.dispose(), preloadCtx.dispose(), appPreloadCtx.dispose(), rendererCtx.dispose()]);
     console.log('==> Build completed successfully in dist/');
   }
 }

@@ -28,6 +28,7 @@ declare global {
       openDirectoryDialog: () => Promise<string | null>;
       openFileDialog: () => Promise<string[]>;
       openExternal: (url: string) => Promise<void>;
+      openAppWindow: (pathOnServer?: string) => Promise<void>;
       quitApp: () => Promise<void>;
       hideWindow: () => Promise<void>;
 
@@ -330,12 +331,12 @@ class AppRenderer {
     // Settings
     this.btnOpenWeb.addEventListener('click', () => {
       if (this.state?.serverUrl) {
-        window.electronAPI.openExternal(this.state.serverUrl);
+        window.electronAPI.openAppWindow();
       }
     });
     this.btnOpenBrowser.addEventListener('click', () => {
       if (this.state?.serverUrl) {
-        window.electronAPI.openExternal(this.state.serverUrl);
+        window.electronAPI.openAppWindow();
       }
     });
 

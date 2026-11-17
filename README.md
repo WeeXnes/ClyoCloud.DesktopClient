@@ -8,6 +8,15 @@ It lives in your system notification tray with a frosted-glass popover, real-tim
 
 ## 🚀 Key Features
 
+* **🖥️ Full ClyoCloud App Window** (new in 1.1.0):
+  * The complete ClyoCloud web interface in a native, resizable window: every page and feature of the website (files, media, theatre, wallpapers, ComfyUI wallpaper generation, settings, admin…), pixel-identical, because it is the server's own UI. It updates whenever the server does.
+  * Signs in automatically with the companion's account; signing in or out in the window signs the companion in or out too.
+  * Native downloads into your Downloads folder with taskbar progress and a notification ("click to show in folder"); files are never overwritten.
+  * Remembers its size, position and maximized state; opens on launch (not on autostart, which starts in the tray), and launching ClyoCloud again brings it to the front.
+  * Links to other sites open in your browser; `Ctrl+R`/`F5` reload, `Alt+←/→` and mouse buttons for back/forward, `Ctrl+=`/`Ctrl+-`/`Ctrl+0` zoom, `F11` full screen, spell-check and a right-click menu.
+  * A setup / offline page (same black design) when the server can't be reached, with retry and a server address field.
+  * Open it from the tray menu (**Open ClyoCloud**) or the popover; **Open in Browser** is still there.
+
 * **⚡ Native System Tray Integration**:
   * Clean monochrome tray icon (cloud idle, active rotating blue sync icon during transfers).
   * Left-click opens the frosted-glass popover anchored to the tray; right-click opens a quick utility context menu (`Open Web`, `Sync All Now`, `Upload Clipboard`, `Preferences`, `Quit`).

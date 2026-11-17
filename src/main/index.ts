@@ -10,6 +10,7 @@ import { addWallpaperToHydeTheme, getWallpaperMode, isHydeInstalled, isHydeOrHyp
 import { AutostartManager } from './platform/autostart';
 import { ClipboardUploader } from './clipboard/uploader';
 import { TrayManager } from './tray';
+import { AppWindowManager } from './appWindow';
 import { getDeviceModelString } from './platform/device';
 import { AppStateData, ClyoFile, TransferItem } from '../shared/types';
 
@@ -27,6 +28,11 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 }
+
+// Starting ClyoCloud again (start menu, launcher, desktop icon) opens the app window
+app.on('second-instance', () => {
+  if (app.isReady()) AppWindowManager.getInstance().show().catch(console.error);
+});
 
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false;
@@ -102,6 +108,24 @@ app.whenReady().then(async () => {
 
   mainWindow = createWindow();
   TrayManager.getInstance().setup(mainWindow);
+
+  // Full app window (the web UI). Signing in or out there updates the companion as well.
+  AppWindowManager.getInstance().init(getAppIconPath(), () => {
+    const username = SettingsManager.getInstance().getUsername();
+    const token = username ? SecureStore.getInstance().readToken(username) : null;
+    if (token) {
+      SyncEngine.getInstance().start();
+      refreshData().catch(console.error);
+    } else {
+      SyncEngine.getInstance().stop();
+      serverStatsCache = null;
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('data-refreshed', getAppState());
+    }
+  });
+  // Autostart launches with --hidden (tray only); a normal launch opens the app
+  if (!process.argv.includes('--hidden')) {
+    AppWindowManager.getInstance().show().catch(console.error);
+  }
 
   // Setup global hotkey (Ctrl + Alt + U or Cmd + Alt + U)
   try {
@@ -200,6 +224,15 @@ function getAppState(): AppStateData {
 function setupIpcHandlers(): void {
   ipcMain.handle('get-app-state', () => getAppState());
 
+  ipcMain.handle('open-app-window', async (_, pathOnServer?: string) => {
+    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) mainWindow.hide();
+    await AppWindowManager.getInstance().show(typeof pathOnServer === 'string' ? pathOnServer : '');
+  });
+
+  ipcMain.handle('app-window-connect', async (_, serverUrl: string) => {
+    await AppWindowManager.getInstance().connect(typeof serverUrl === 'string' ? serverUrl : '');
+  });
+
   ipcMain.handle('refresh-data', async () => {
     await refreshData();
     return getAppState();
@@ -239,6 +272,7 @@ function setupIpcHandlers(): void {
 
     SyncEngine.getInstance().start();
     await refreshData();
+    await AppWindowManager.getInstance().accountChangedOutside();
     return { success: true, message: `Connected to ${SettingsManager.getInstance().getServerUrl()}!` };
   });
 
@@ -256,6 +290,7 @@ function setupIpcHandlers(): void {
         SecureStore.getInstance().saveToken(username, res.token);
         SyncEngine.getInstance().start();
         await refreshData();
+        await AppWindowManager.getInstance().accountChangedOutside();
         return { success: true, message: 'Logged in successfully!' };
       }
       return { success: false, message: 'Login failed' };
@@ -274,6 +309,7 @@ function setupIpcHandlers(): void {
       SecureStore.getInstance().saveToken(username, token);
       SyncEngine.getInstance().start();
       await refreshData();
+      await AppWindowManager.getInstance().accountChangedOutside();
       return { success: true, message: 'Verified and logged in!' };
     } catch (e: any) {
       return { success: false, message: e?.message || 'Verification error' };
@@ -289,6 +325,7 @@ function setupIpcHandlers(): void {
     SyncEngine.getInstance().stop();
     serverStatsCache = null;
     recentTransfers = [];
+    AppWindowManager.getInstance().accountChangedOutside().catch(console.error);
     return getAppState();
   });
 

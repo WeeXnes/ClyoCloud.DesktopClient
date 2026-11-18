@@ -1,6 +1,8 @@
-version: 43
+version: 59
 jobs:
 - name: Get Version (private)
+  executeInSandbox: false
+  jobExecutor: Builder
   steps:
   - type: CheckoutStep
     name: checkout code
@@ -14,11 +16,13 @@ jobs:
     name: get version
     runInContainer: false
     interpreter:
-      type: DefaultInterpreter
+      type: PosixInterpreter
+      shell: sh
       commands: |
         echo "Extracting version from package.json..."
         grep -oP '"version":\s*"\K[^"]+' package.json > version.txt || echo "1.0.0" > version.txt
         echo "Version extracted: $(cat version.txt)"
+    runAs: 0:0
     useTTY: true
     condition: SUCCESSFUL
     optional: false
@@ -26,7 +30,8 @@ jobs:
     name: check if tag exists
     runInContainer: false
     interpreter:
-      type: DefaultInterpreter
+      type: PosixInterpreter
+      shell: sh
       commands: |
         version=$(cat version.txt)
         echo "Checking if tag '$version' exists on origin..."
@@ -40,6 +45,7 @@ jobs:
             echo "Tag '$version' does not exist. Proceeding with original version."
             exit 0
         fi
+    runAs: 0:0
     useTTY: true
     condition: SUCCESSFUL
     optional: false
@@ -54,16 +60,19 @@ jobs:
     tagMessage: Release Tag for @file:version.txt@
     condition: SUCCESSFUL
     optional: false
-  jobExecutor: Builder
   triggers:
   - type: BranchUpdateTrigger
     userMatch: anyone
   - type: PullRequestUpdateTrigger
   retryCondition: never
-  maxRetries: 3
+  maxAttempts: 4
   retryDelay: 30
+  includeUpstreamWhenRebuild: false
+  includeDownstreamWhenRebuild: false
   timeout: 14400
 - name: Build Release Tag
+  executeInSandbox: false
+  jobExecutor: Builder
   steps:
   - type: CheckoutStep
     name: checkout code
@@ -82,10 +91,12 @@ jobs:
     name: Install Node Dependencies
     runInContainer: false
     interpreter:
-      type: DefaultInterpreter
+      type: PosixInterpreter
+      shell: sh
       commands: |
         echo "Installing Node.js dependencies..."
         npm install
+    runAs: 0:0
     useTTY: true
     condition: SUCCESSFUL
     optional: false
@@ -93,10 +104,12 @@ jobs:
     name: Compile App Bundle
     runInContainer: false
     interpreter:
-      type: DefaultInterpreter
+      type: PosixInterpreter
+      shell: sh
       commands: |
         echo "Compiling TypeScript and bundling renderer assets..."
         npm run build
+    runAs: 0:0
     useTTY: true
     condition: SUCCESSFUL
     optional: false
@@ -104,11 +117,13 @@ jobs:
     name: Package App Binaries (Linux & Windows)
     runInContainer: false
     interpreter:
-      type: DefaultInterpreter
+      type: PosixInterpreter
+      shell: sh
       commands: |
         echo "Packaging unpacked Electron applications for Linux and Windows..."
         npm run pack:linux
         npm run pack:win
+    runAs: 0:0
     useTTY: true
     condition: SUCCESSFUL
     optional: false
@@ -116,11 +131,13 @@ jobs:
     name: Setup Installer Framework
     runInContainer: false
     interpreter:
-      type: DefaultInterpreter
+      type: PosixInterpreter
+      shell: sh
       commands: |
         echo "Setting up InstallerFramework..."
         chmod +x installer/*.sh
         ./installer/setup.sh
+    runAs: 0:0
     useTTY: true
     condition: SUCCESSFUL
     optional: false
@@ -128,7 +145,8 @@ jobs:
     name: Build Standalone Installers
     runInContainer: false
     interpreter:
-      type: DefaultInterpreter
+      type: PosixInterpreter
+      shell: sh
       commands: |
         echo "Compiling standalone single-file installer wizards..."
         ./installer/build.sh all
@@ -142,6 +160,7 @@ jobs:
         fi
         echo "Release directory contents:"
         ls -lh ./release/
+    runAs: 0:0
     useTTY: true
     condition: SUCCESSFUL
     optional: false
@@ -151,10 +170,11 @@ jobs:
     artifacts: '**'
     condition: ALWAYS
     optional: false
-  jobExecutor: Builder
   triggers:
   - type: TagCreateTrigger
   retryCondition: never
-  maxRetries: 3
+  maxAttempts: 4
   retryDelay: 30
+  includeUpstreamWhenRebuild: false
+  includeDownstreamWhenRebuild: false
   timeout: 14400
